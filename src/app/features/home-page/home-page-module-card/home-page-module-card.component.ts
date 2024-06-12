@@ -29,7 +29,6 @@ export class HomePageModuleCardComponent {
   }
 
   get firstTutorialId(): number | undefined {
-    // return this.moduleData?.tutorials[0].id;
-    return 0;
+    return this.moduleData?.tutorials[0].id;
   }
 }

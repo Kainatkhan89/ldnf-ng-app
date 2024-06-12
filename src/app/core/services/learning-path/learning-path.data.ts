@@ -4,7 +4,7 @@ import {ILearningPath} from "../../models/learning-path/learning-path.model";
 import {IProgress} from "../../models/progress/progress.model";
 
 export class LearningPathData implements InMemoryDbService {
-  mockModule1: IModule = {
+  /* mockModule1: IModule = {
     id: 0,
     number: 1,
     title: 'ASP.NET: The Concepts',
@@ -406,7 +406,7 @@ export class LearningPathData implements InMemoryDbService {
   }
 
   learningPath: ILearningPath = { modules: [this.mockModule1, this.mockModule2, this.mockModule3, this.mockModule4,
-    this.mockModule5, this.mockModule6, this.mockModule7, this.mockModule8] }
+    this.mockModule5, this.mockModule6, this.mockModule7, this.mockModule8] } */
 
   progressData: IProgress = {
     userId: 'SnfKNtkKYsPIds52hGh9aTtSEb92',
@@ -414,6 +414,6 @@ export class LearningPathData implements InMemoryDbService {
   };
 
   createDb() {
-    return {learningPath: this.learningPath, progress: this.progressData};
+    return {progress: this.progressData};
   }
 }
