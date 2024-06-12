@@ -1,5 +1,25 @@
 # learndotnetfast.com Angular Application
 
+This is the Angular repository of Kainat Khan's full-stack portfolio project built with Angular and ASP .NET.
+
+Please note that the back-end is still WIP.
+
+## Why this project?
+
+To solidify and showcase my knowledge of ASP .NET, Angular, UI / UX development, "pseudo-agile" developmnent, all while trying to learn and implement best practices such as test-driven development and SOLID principles that can get overlooked in professional projects due to tight deadlines or lack of team knowledge. 
+
+## Current status
+
+This project is work in progress as I am learning, building, and refactoring at the same time based on my own learning progress.
+
+## To Do:
+
+1. Write Angular Test
+2. Use Signals
+3. Add Study Resources feature
+
+---
+
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.1.0.
 
 ## Development server

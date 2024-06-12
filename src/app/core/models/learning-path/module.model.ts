@@ -9,7 +9,8 @@ export interface IModule {
   tutorials: ITutorial[];
 }
 
-interface ModuleStyles {
+export interface ModuleStyles {
   icon: "BOOK" | "FLAG" | "TERMINAL" | "WARNING" | "SHIELD" | "DATABASE" | "LOCK" | "PLANE";
   color: "INDIGO" | "TEAL" | "PURPLE" | "PINK" | "YELLOW" | "FUCHSIA" | "ROSE" | "SKY";
 }
+
