@@ -12,7 +12,7 @@ import {ITutorial} from "../../models/learning-path/tutorial.model";
   providedIn: 'root'
 })
 export class LearningProgressService {
-  private readonly _progressDataApi: string = '/api/progress';
+  private readonly _progressDataApi: string = 'https://localhost:7018/api/progress';
   private readonly _preInitializationProgressData: IProgress = { userId: '', completedTutorialIds: [] };
 
   private _httpClient: HttpClient = inject(HttpClient);
@@ -103,9 +103,11 @@ export class LearningProgressService {
         if (!user || !user.uid) {
           throw new Error('User ID not found');
         }
-
+        else{
+          console.log(user.uid)
+        }
         // return this._httpClient.get<IProgress>(`${this._progressDataApi}/${user.uid}`);
-        return this._httpClient.get<IProgress>(`${this._progressDataApi}`).pipe(
+        return this._httpClient.get<IProgress>(`${this._progressDataApi}/${user.uid}`).pipe(
           catchError((err) => { throw new Error(err) })
         )
       }),
