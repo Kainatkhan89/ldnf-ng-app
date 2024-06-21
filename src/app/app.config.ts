@@ -3,8 +3,8 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import {provideHttpClient} from "@angular/common/http";
-import {InMemoryWebApiModule} from "angular-in-memory-web-api";
-import {LearningPathData} from "./core/services/learning-path/learning-path.data";
+//import {InMemoryWebApiModule} from "angular-in-memory-web-api";
+//import {LearningPathData} from "./core/services/learning-path/learning-path.data";
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import {provideAnimations} from "@angular/platform-browser/animations";
