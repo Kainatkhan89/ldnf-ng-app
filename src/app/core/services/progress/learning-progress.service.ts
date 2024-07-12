@@ -1,18 +1,19 @@
 import {inject, Injectable} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {UserService} from "../user/user.service";
 import {TutorialService} from "../tutorial/tutorial.service";
-import {BehaviorSubject, catchError, combineLatest, map, Observable, switchMap, take, tap} from "rxjs";
+import {BehaviorSubject, catchError, combineLatest, from, map, Observable, switchMap, take, tap} from "rxjs";
 import {IProgress} from "../../models/progress/progress.model";
 import {IProgressCardViewModel} from "../../models/view-models/progress-card-view.model";
 import {ITutorial} from "../../models/learning-path/tutorial.model";
+import {environment} from "../../../../environments/environment.prod";
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class LearningProgressService {
-  private readonly _progressDataApi: string = 'https://localhost:7018/api/progress';
+  private readonly _progressDataApi: string = `${environment.apiUrl}/progress`;
   private readonly _preInitializationProgressData: IProgress = { userId: '', completedTutorialIds: [] };
 
   private _httpClient: HttpClient = inject(HttpClient);
@@ -45,43 +46,36 @@ export class LearningProgressService {
   }
 
   setTutorialAsCompleted(tutorialId: number): void {
-    const userId = this._progressDataSubject.value.userId;
-    if (!this.isTutorialCompleted(tutorialId)) {
-      this._httpClient.post<IProgress>(`${this._progressDataApi}/complete-tutorial`, {
-        userId,
-        tutorialId
-      }).subscribe({
-        next: (progress) => {
-          this._progressDataSubject.next(progress);
-        },
-        error: (err) => console.error('Error when marking tutorial as completed:', err)
-      });
+    if (!this._alreadyCompleted(tutorialId)) {
+      const updatedProgress: IProgress = {
+        ...this.currentProgress,
+        completedTutorialIds: [...this.currentProgress.completedTutorialIds, tutorialId]
+      };
+
+      this._callUpdateProgressAPI(updatedProgress);
     }
   }
 
   setTutorialAsNotCompleted(tutorialId: number): void {
-    const userId = this._progressDataSubject.value.userId;
-    if (this.isTutorialCompleted(tutorialId)) {
-      this._httpClient.delete(`${this._progressDataApi}/remove-completion`, {
-        body: { userId, tutorialId }
-      }).subscribe({
-        next: () => {
-          const filteredIds = this._progressDataSubject.value.completedTutorialIds.filter(id => id !== tutorialId);
-          this._progressDataSubject.next({ ...this._progressDataSubject.value, completedTutorialIds: filteredIds });
-        },
-        error: (err) => console.error('Error when removing tutorial completion:', err)
-      });
+    if (this._alreadyCompleted(tutorialId)) {
+      const updatedCompletedTutorialIds: number[] = this.currentProgress.completedTutorialIds.filter(id => id !== tutorialId);
+
+      const updatedProgress: IProgress = {
+        ...this.currentProgress,
+        completedTutorialIds: updatedCompletedTutorialIds
+      };
+
+      this._callUpdateProgressAPI(updatedProgress);
     }
   }
 
   resetLearningProgress(): void {
-    const userId = this._progressDataSubject.value.userId;
-    this._httpClient.delete(`${this._progressDataApi}/remove-all/${userId}`).subscribe({
-      next: () => {
-        this._progressDataSubject.next({ ...this._progressDataSubject.value, completedTutorialIds: [] });
-      },
-      error: (err) => console.error('Error when resetting learning progress:', err)
-    });
+    const resetProgress: IProgress = {
+      ...this.currentProgress,
+      completedTutorialIds: []
+    };
+
+    this._callUpdateProgressAPI(resetProgress);
   }
 
   isTutorialCompleted(tutorialId: number): boolean {
@@ -110,10 +104,15 @@ export class LearningProgressService {
         if (!user || !user.uid) {
           throw new Error('User ID not found');
         }
-        
-        return this._httpClient.get<IProgress>(`${this._progressDataApi}/${user.uid}`).pipe(
-          catchError((err) => { throw new Error(err) })
-        )
+
+        return from(user.getIdToken()).pipe(
+          switchMap(token => {
+            const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+            return this._httpClient.get<IProgress>(`${this._progressDataApi}`, { headers }).pipe(
+              catchError((err) => { throw new Error(err) })
+            );
+          })
+        );
       }),
       tap(value => {
         this._progressDataSubject.next(value);
@@ -121,6 +120,33 @@ export class LearningProgressService {
     ).subscribe(
       {
         error: err => console.error('Failed to fetch user progress data', err)
+      }
+    );
+  }
+
+  private _callUpdateProgressAPI(updatedProgress: IProgress): void {
+    this._userService.user$.pipe(
+      take(1),
+      switchMap(user => {
+        if (!user || !user.uid) {
+          throw new Error('User ID not found');
+        }
+
+        return from(user.getIdToken()).pipe(
+          switchMap(token => {
+            const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+            return this._httpClient.post(`${this._progressDataApi}`, { completedTutorials: updatedProgress.completedTutorialIds }, { headers }).pipe(
+              tap(() => {
+                this._progressDataSubject.next(updatedProgress);
+              }),
+              catchError((err) => { throw new Error(err) })
+            );
+          })
+        );
+      })
+    ).subscribe(
+      {
+        error: err => console.error('Failed to update user progress', err)
       }
     );
   }

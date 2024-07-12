@@ -5,7 +5,7 @@ import {ILearningPath} from "../../models/learning-path/learning-path.model";
 import { ILearningPathDTO } from '../../models/learning-path/learning-path-dto.model';
 import { LearningPathMapperService } from '../mapper/learning-path-mapper.service';
 import {UserService} from "../user/user.service";
-import {environment} from "../../../../environments/environment";
+import {environment} from "../../../../environments/environment.prod";
 
 @Injectable({
   providedIn: 'root'
