@@ -23,6 +23,7 @@ export class LearningPathMapperService {
         },
         tutorials: module.tutorials.map(tutorial => ({
           id: tutorial.id,
+          number: tutorial.number,
           moduleId: tutorial.moduleId,
           title: tutorial.title,
           durationSeconds: tutorial.durationSeconds,
