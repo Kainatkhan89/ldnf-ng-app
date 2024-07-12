@@ -408,12 +408,12 @@ export class LearningPathData implements InMemoryDbService {
   learningPath: ILearningPath = { modules: [this.mockModule1, this.mockModule2, this.mockModule3, this.mockModule4,
     this.mockModule5, this.mockModule6, this.mockModule7, this.mockModule8] } */
 
-  progressData: IProgress = {
-    userId: 'SnfKNtkKYsPIds52hGh9aTtSEb92',
-    completedTutorialIds: []
-  };
+  // progressData: IProgress = {
+  //   userId: 'SnfKNtkKYsPIds52hGh9aTtSEb92',
+  //   completedTutorialIds: []
+  // }; 
 
   createDb() {
-    return {progress: this.progressData};
+    return {};
   }
 }
