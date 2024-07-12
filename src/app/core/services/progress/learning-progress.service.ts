@@ -12,7 +12,7 @@ import {ITutorial} from "../../models/learning-path/tutorial.model";
   providedIn: 'root'
 })
 export class LearningProgressService {
-  private readonly _progressDataApi: string = '/api/progress';
+  private readonly _progressDataApi: string = 'https://localhost:7018/api/progress';
   private readonly _preInitializationProgressData: IProgress = { userId: '', completedTutorialIds: [] };
 
   private _httpClient: HttpClient = inject(HttpClient);
@@ -45,36 +45,43 @@ export class LearningProgressService {
   }
 
   setTutorialAsCompleted(tutorialId: number): void {
-    if (!this._alreadyCompleted(tutorialId)) {
-      const updatedProgress: IProgress = {
-        ...this.currentProgress,
-        completedTutorialIds: [...this.currentProgress.completedTutorialIds, tutorialId]
-      };
-
-      this._progressDataSubject.next(updatedProgress);
+    const userId = this._progressDataSubject.value.userId;
+    if (!this.isTutorialCompleted(tutorialId)) {
+      this._httpClient.post<IProgress>(`${this._progressDataApi}/complete-tutorial`, {
+        userId,
+        tutorialId
+      }).subscribe({
+        next: (progress) => {
+          this._progressDataSubject.next(progress);
+        },
+        error: (err) => console.error('Error when marking tutorial as completed:', err)
+      });
     }
   }
 
   setTutorialAsNotCompleted(tutorialId: number): void {
-    if (this._alreadyCompleted(tutorialId)) {
-      const updatedCompletedTutorialIds: number[] = this.currentProgress.completedTutorialIds.filter(id => id !== tutorialId);
-
-      const updatedProgress: IProgress = {
-        ...this.currentProgress,
-        completedTutorialIds: updatedCompletedTutorialIds
-      };
-
-      this._progressDataSubject.next(updatedProgress);
+    const userId = this._progressDataSubject.value.userId;
+    if (this.isTutorialCompleted(tutorialId)) {
+      this._httpClient.delete(`${this._progressDataApi}/remove-completion`, {
+        body: { userId, tutorialId }
+      }).subscribe({
+        next: () => {
+          const filteredIds = this._progressDataSubject.value.completedTutorialIds.filter(id => id !== tutorialId);
+          this._progressDataSubject.next({ ...this._progressDataSubject.value, completedTutorialIds: filteredIds });
+        },
+        error: (err) => console.error('Error when removing tutorial completion:', err)
+      });
     }
   }
 
   resetLearningProgress(): void {
-    const resetProgress: IProgress = {
-      ...this.currentProgress,
-      completedTutorialIds: []
-    }
-
-    this._progressDataSubject.next(resetProgress);
+    const userId = this._progressDataSubject.value.userId;
+    this._httpClient.delete(`${this._progressDataApi}/remove-all/${userId}`).subscribe({
+      next: () => {
+        this._progressDataSubject.next({ ...this._progressDataSubject.value, completedTutorialIds: [] });
+      },
+      error: (err) => console.error('Error when resetting learning progress:', err)
+    });
   }
 
   isTutorialCompleted(tutorialId: number): boolean {
@@ -103,9 +110,8 @@ export class LearningProgressService {
         if (!user || !user.uid) {
           throw new Error('User ID not found');
         }
-
-        // return this._httpClient.get<IProgress>(`${this._progressDataApi}/${user.uid}`);
-        return this._httpClient.get<IProgress>(`${this._progressDataApi}`).pipe(
+        
+        return this._httpClient.get<IProgress>(`${this._progressDataApi}/${user.uid}`).pipe(
           catchError((err) => { throw new Error(err) })
         )
       }),
@@ -118,7 +124,6 @@ export class LearningProgressService {
       }
     );
   }
-
 
   private _alreadyCompleted(tutorialId: number): boolean {
     return this._progressDataSubject.getValue().completedTutorialIds.includes(tutorialId);

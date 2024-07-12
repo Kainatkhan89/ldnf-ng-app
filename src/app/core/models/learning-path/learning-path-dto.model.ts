@@ -14,6 +14,7 @@ export interface ICourseModuleDTO {
 
 export interface ITutorialDTO {
     id: number;
+    number: number;
     moduleId: number;
     title: string;
     durationSeconds: number;
